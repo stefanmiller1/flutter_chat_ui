@@ -370,6 +370,7 @@ class Message extends StatelessWidget {
         children: [
           if (!currentUserIsAuthor && showUserAvatars) _avatarBuilder(),
           Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               ConstrainedBox(
             constraints: BoxConstraints(
@@ -410,6 +411,7 @@ class Message extends StatelessWidget {
               if (currentUserIsAuthor) _statusIcon(context),
             ],
           ),
+          const SizedBox(width: 8),
         ],
       ),
     );
