@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:visibility_detector/visibility_detector.dart';
 
@@ -19,7 +20,7 @@ import 'user_avatar.dart';
 /// a nice look on larger screens.
 class Message extends StatelessWidget {
   /// Creates a particular message from any message type.
-  const Message({
+ Message({
     super.key,
     this.audioMessageBuilder,
     this.avatarBuilder,
@@ -42,6 +43,7 @@ class Message extends StatelessWidget {
     this.onMessageStatusLongPress,
     this.onMessageStatusTap,
     this.onMessageTap,
+    this.onMessageMenuItemTap,
     this.onMessageVisibilityChanged,
     this.onPreviewDataFetched,
     required this.roundBorder,
@@ -145,6 +147,9 @@ class Message extends StatelessWidget {
   /// Called when the message's visibility changes.
   final void Function(types.Message, bool visible)? onMessageVisibilityChanged;
 
+  /// Called when user taps message menu item on any message. 
+  final void Function(String value)? onMessageMenuItemTap;
+
   /// See [TextMessage.onPreviewDataFetched].
   final void Function(types.TextMessage, types.PreviewData)?
       onPreviewDataFetched;
@@ -190,6 +195,8 @@ class Message extends StatelessWidget {
   final Widget Function(types.VideoMessage, {required int messageWidth})?
       videoMessageBuilder;
 
+  final hoverNotifier = ValueNotifier<bool>(false);
+
   Widget _avatarBuilder() => showAvatar
       ? avatarBuilder?.call(message.author) ??
           UserAvatar(
@@ -199,6 +206,73 @@ class Message extends StatelessWidget {
             onAvatarTap: onAvatarTap,
           )
       : const SizedBox(width: 40);
+
+  Widget _popupMenuBuilder(ValueNotifier<bool> hoverNotifier, bool currentUserIsAuthor) => ValueListenableBuilder<bool>(
+      valueListenable: hoverNotifier,
+      builder: (context, isHovered, child) {
+        return AnimatedOpacity(
+          opacity: isHovered ? 1.0 : 0.0,
+          duration: const Duration(milliseconds: 400),
+          child: isHovered
+              ? Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                child: PopupMenuButton<String>(
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    color: InheritedChatTheme.of(context).theme.secondaryColor,
+                    icon: const Icon(Icons.more_vert, size: 18),
+                    offset: (currentUserIsAuthor) ? Offset(-80, 0) : Offset(80, 0),
+                    onSelected: (value) {
+                      switch (value) {
+                        case 'copy':
+                          break;
+                        case 'react':
+                          break;
+                        case 'reply':
+                          break;
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                        value: 'copy',
+                        child: Row(
+                          children: const [
+                            Icon(CupertinoIcons.doc_on_clipboard, size: 18),
+                            SizedBox(width: 8),
+                            Text('Copy'),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'react',
+                        child: Row(
+                          children: const [
+                            Icon(CupertinoIcons.smiley, size: 18),
+                            SizedBox(width: 8),
+                            Text('React'),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'reply',
+                        child: Row(
+                          children: const [
+                            Icon(CupertinoIcons.return_icon, size: 18),
+                            SizedBox(width: 8),
+                            Text('Reply'),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+              )
+              : const SizedBox.shrink(),
+        );
+      },
+    );
+  
 
   Widget _bubbleBuilder(
     BuildContext context,
@@ -351,68 +425,83 @@ class Message extends StatelessWidget {
                 left: 20 + (isMobile ? query.padding.left : 0),
                 right: isMobile ? query.padding.right : 0,
               ));
+      
 
-    return Container(
-      alignment: bubbleRtlAlignment == BubbleRtlAlignment.left
-          ? currentUserIsAuthor
-              ? AlignmentDirectional.centerEnd
-              : AlignmentDirectional.centerStart
-          : currentUserIsAuthor
-              ? Alignment.centerRight
-              : Alignment.centerLeft,
-      margin: bubbleMargin,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        mainAxisSize: MainAxisSize.min,
-        textDirection: bubbleRtlAlignment == BubbleRtlAlignment.left
-            ? null
-            : TextDirection.ltr,
-        children: [
-          if (!currentUserIsAuthor && showUserAvatars) _avatarBuilder(),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: messageWidth.toDouble(),
-            ),
-            child: Column(
+    return MouseRegion(
+      onEnter: (_) => hoverNotifier.value = true,
+      onExit: (_) => hoverNotifier.value = false,
+      child: Container(
+        alignment: bubbleRtlAlignment == BubbleRtlAlignment.left
+            ? currentUserIsAuthor
+                ? AlignmentDirectional.centerEnd
+                : AlignmentDirectional.centerStart
+            : currentUserIsAuthor
+                ? Alignment.centerRight
+                : Alignment.centerLeft,
+        margin: bubbleMargin,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          textDirection: bubbleRtlAlignment == BubbleRtlAlignment.left
+              ? null
+              : TextDirection.ltr,
+          children: [
+            if (!currentUserIsAuthor && showUserAvatars) _avatarBuilder(),
+            Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                    GestureDetector(
-                      onDoubleTap: () => onMessageDoubleTap?.call(context, message),
-                      onLongPress: () => onMessageLongPress?.call(context, message),
-                      onTap: () => onMessageTap?.call(context, message),
-                      child: onMessageVisibilityChanged != null
-                          ? VisibilityDetector(
-                              key: Key(message.id),
-                              onVisibilityChanged: (visibilityInfo) =>
-                                  onMessageVisibilityChanged!(
-                                message,
-                                visibilityInfo.visibleFraction > 0.1,
-                              ),
-                              child: _bubbleBuilder(
-                                context,
-                                borderRadius.resolve(Directionality.of(context)),
-                                currentUserIsAuthor,
-                                enlargeEmojis,
-                              ),
-                            )
-                          : _bubbleBuilder(
-                              context,
-                              borderRadius.resolve(Directionality.of(context)),
-                              currentUserIsAuthor,
-                              enlargeEmojis,
-                            ),
-                    ),
-                  ],
-                ),
+                ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: messageWidth.toDouble(),
               ),
-              if (currentUserIsAuthor) _statusIcon(context),
-            ],
-          ),
-          const SizedBox(width: 8),
-        ],
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          if (currentUserIsAuthor) _popupMenuBuilder(hoverNotifier, currentUserIsAuthor),
+                          Flexible(
+                            child: GestureDetector(
+                              onDoubleTap: () => onMessageDoubleTap?.call(context, message),
+                              onLongPress: () => onMessageLongPress?.call(context, message),
+                              onTap: () => onMessageTap?.call(context, message),
+                              child: onMessageVisibilityChanged != null
+                                  ? VisibilityDetector(
+                                      key: Key(message.id),
+                                      onVisibilityChanged: (visibilityInfo) =>
+                                        onMessageVisibilityChanged!(
+                                        message,
+                                        visibilityInfo.visibleFraction > 0.1,
+                                      ),
+                                      child: _bubbleBuilder(
+                                        context,
+                                        borderRadius.resolve(Directionality.of(context)),
+                                        currentUserIsAuthor,
+                                        enlargeEmojis,
+                                      ),
+                                    )
+                                  : _bubbleBuilder(
+                                      context,
+                                      borderRadius.resolve(Directionality.of(context)),
+                                      currentUserIsAuthor,
+                                      enlargeEmojis,
+                                    ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                if (currentUserIsAuthor) _statusIcon(context),
+              ],
+            ),
+            if (!currentUserIsAuthor) _popupMenuBuilder(hoverNotifier, currentUserIsAuthor),
+            const SizedBox(width: 8),
+          ],
+        ),
       ),
     );
   }
