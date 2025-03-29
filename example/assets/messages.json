@@ -1,6 +1,90 @@
 [
   {
     "author": {
+      "firstName": "Matthew",
+      "id": "82091008-a484-4a89-ae75-a22bf8d6f3ac",
+      "lastName": "White"
+    },
+    "createdAt": 1655648410000,
+    "id": "self-reply-1",
+    "status": "seen",
+    "text": "Just following up on my earlier message.",
+    "type": "text",
+    "repliedMessage": {
+      "author": {
+        "firstName": "Matthew",
+        "id": "82091008-a484-4a89-ae75-a22bf8d6f3ac",
+        "lastName": "White"
+      },
+      "createdAt": 1655648401000,
+      "id": "64747b28-df19-4a0c-8c47-316dc3546e3c",
+      "status": "seen",
+      "text": "Here you go buddy! 💪",
+      "type": "text"
+    }
+  },
+  {
+    "author": {
+      "firstName": "Janice",
+      "id": "e52552f4-835d-4dbe-ba77-b076e659774d",
+      "imageUrl": "https://i.pravatar.cc/300?u=e52552f4-835d-4dbe-ba77-b076e659774d",
+      "lastName": "King"
+    },
+    "createdAt": 1655648412000,
+    "id": "reply-to-matthew",
+    "status": "seen",
+    "text": "Thanks Matthew, that helped a lot!",
+    "type": "text",
+    "repliedMessage": {
+      "author": {
+        "firstName": "Matthew",
+        "id": "82091008-a484-4a89-ae75-a22bf8d6f3ac",
+        "lastName": "White"
+      },
+      "createdAt": 1655648401000,
+      "id": "64747b28-df19-4a0c-8c47-316dc3546e3c",
+      "status": "seen",
+      "text": "Here you go buddy! 💪",
+      "type": "text"
+    }
+  },
+  {
+    "author": {
+      "firstName": "John",
+      "id": "4c2307ba-3d40-442f-b1ff-b271f63904ca",
+      "lastName": "Doe"
+    },
+    "createdAt": 1655648405000,
+    "id": "f9e9c5ba-d03e-4d3e-a97a-279f3cf81491",
+    "status": "sent",
+    "text": "This photo is amazing!",
+    "type": "text",
+    "repliedMessage": {
+      "author": {
+        "firstName": "Janice",
+        "id": "e52552f4-835d-4dbe-ba77-b076e659774d",
+        "imageUrl": "https://i.pravatar.cc/300?u=e52552f4-835d-4dbe-ba77-b076e659774d",
+        "lastName": "King"
+      },
+      "createdAt": 1655648403000,
+      "height": 1280,
+      "id": "02797655-4d73-402e-a319-50fde79e2bc4",
+      "name": "madrid",
+      "size": 585000,
+      "status": "seen",
+      "type": "image",
+      "uri": "https://images.unsplash.com/photo-1539037116277-4db20889f2d4",
+      "width": 1920
+    },
+    "metadata": {
+      "reactions": {
+        "4c2307ba-3d40-442f-b1ff-b271f63904ca": "😍",
+        "e52552f4-835d-4dbe-ba77-b076e659774d": "❤️"
+      }
+    }
+  },
+  {
+    "author": {
       "firstName": "John",
       "id": "4c2307ba-3d40-442f-b1ff-b271f63904ca",
       "lastName": "Doe"
@@ -86,6 +170,37 @@
       "id": "82091008-a484-4a89-ae75-a22bf8d6f3ac",
       "lastName": "White"
     },
+    "createdAt": 1655624466000,
+    "id": "bb0b97e1-3ed8-4234-99ed-7de4cf6e39c4",
+    "status": "seen",
+    "text": "Here's what I think:",
+    "type": "text",
+    "repliedMessage": {
+      "author": {
+        "firstName": "Janice",
+        "id": "e52552f4-835d-4dbe-ba77-b076e659774d",
+        "imageUrl": "https://i.pravatar.cc/300?u=e52552f4-835d-4dbe-ba77-b076e659774d",
+        "lastName": "King"
+      },
+      "createdAt": 1655624462000,
+      "id": "22212d42-1252-4641-9786-d6f83b2ce4a8",
+      "status": "seen",
+      "text": "Matt, what do you think?",
+      "type": "text"
+    },
+    "metadata": {
+      "reactions": {
+        "82091008-a484-4a89-ae75-a22bf8d6f3ac": "💬",
+        "4c2307ba-3d40-442f-b1ff-b271f63904ca": "😂"
+      }
+    }
+  },
+  {
+    "author": {
+      "firstName": "Matthew",
+      "id": "82091008-a484-4a89-ae75-a22bf8d6f3ac",
+      "lastName": "White"
+    },
     "createdAt": 1655624463000,
     "id": "113bb2e8-f74e-42cd-aa30-4085a0f52c58",
     "status": "seen",
@@ -129,5 +244,35 @@
     "status": "seen",
     "text": "Guys! Did you know Imagine Dragons became ambassadors for u24.gov.ua ?",
     "type": "text"
+  },
+{
+  "author": {
+    "firstName": "Janice",
+    "id": "e52552f4-835d-4dbe-ba77-b076e659774d",
+    "imageUrl": "https://i.pravatar.cc/300?u=e52552f4-835d-4dbe-ba77-b076e659774d",
+    "lastName": "King"
+  },
+  "createdAt": 1655624465000,
+  "id": "d22ea674-6b4e-42fa-b47f-b5f5c3a0b1c5",
+  "status": "seen",
+  "text": "That's so cool! 😍",
+  "type": "text",
+  "repliedMessage": {
+    "author": {
+      "firstName": "John",
+      "id": "4c2307ba-3d40-442f-b1ff-b271f63904ca",
+      "lastName": "Doe"
+    },
+    "createdAt": 1655624460000,
+    "id": "634b2f0b-2486-4bfe-b36d-1c7d6313c7b3",
+    "status": "seen",
+    "text": "Guys! Did you know Imagine Dragons became ambassadors for u24.gov.ua ?",
+    "type": "text"
+  },
+  "metadata": {
+    "reactions": {
+      "e52552f4-835d-4dbe-ba77-b076e659774d": "😍"
+      }
+    }
   }
 ]

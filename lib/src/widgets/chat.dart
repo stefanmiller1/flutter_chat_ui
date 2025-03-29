@@ -80,6 +80,11 @@ class Chat extends StatefulWidget {
     this.onMessageLongPress,
     this.onMessageStatusLongPress,
     this.onMessageStatusTap,
+    this.onMessageCopyTap,
+    this.onMessageReactionTap, 
+    this.onCurrentMessageReactionsTap,
+    this.onMessageReplyTap, 
+    this.onMessageUnsendTap,
     this.onMessageTap,
     this.onMessageVisibilityChanged,
     this.onPreviewDataFetched,
@@ -102,7 +107,7 @@ class Chat extends StatefulWidget {
     this.videoMessageBuilder,
     this.slidableMessageBuilder,
     this.isLeftStatus = false,
-    this.messageWidthRatio = 0.72,
+    this.messageWidthRatio = 0.72, 
   });
 
   /// See [Message.audioMessageBuilder].
@@ -250,6 +255,21 @@ class Chat extends StatefulWidget {
   /// See [Message.onMessageStatusLongPress].
   final void Function(BuildContext context, types.Message)?
       onMessageStatusLongPress;
+
+  /// See [Message.onMessageCopyTap].
+  final void Function(BuildContext context, types.Message message)? onMessageCopyTap;
+
+  /// See [Message.onMessageReactionTap].
+  final void Function(BuildContext context, types.Message message, String reaction)? onMessageReactionTap;
+
+  /// see [Message.onCurrentMessageReactionsTap].
+  final void Function(BuildContext context, types.Message message)? onCurrentMessageReactionsTap;
+
+  /// See [Message.onMessageReplyTap].
+  final void Function(BuildContext context, types.Message message)? onMessageReplyTap;
+
+  /// See [Message.onMessageUnsendTap].
+  final void Function(BuildContext context, types.Message message)? onMessageUnsendTap;
 
   /// See [Message.onMessageStatusTap].
   final void Function(BuildContext context, types.Message)? onMessageStatusTap;
@@ -464,6 +484,10 @@ class ChatState extends State<Chat> {
       final map = object as Map<String, Object>;
       final message = map['message']! as types.Message;
 
+      final isFirstMessageInGroup = map['isFirstMessageInGroup'] as bool;
+      final isLastMessageInGroup = map['isLastMessageInGroup'] as bool;
+      final isMessageInGroup = map['isMessageInGroup'] as bool;
+
       final Widget messageWidget;
 
       if (message is types.SystemMessage) {
@@ -500,18 +524,25 @@ class ChatState extends State<Chat> {
           onMessageLongPress: widget.onMessageLongPress,
           onMessageStatusLongPress: widget.onMessageStatusLongPress,
           onMessageStatusTap: widget.onMessageStatusTap,
+          onMessageCopyTap: widget.onMessageCopyTap,
+          onMessageReactionTap: widget.onMessageReactionTap,
+          onCurrentMessageReactionsTap: widget.onCurrentMessageReactionsTap,
+          onMessageReplyTap: widget.onMessageReplyTap,
+          onMessageUnsendTap: widget.onMessageUnsendTap,
           onMessageTap: (context, tappedMessage) {
             if (tappedMessage is types.ImageMessage &&
                 widget.disableImageGallery != true) {
               _onImagePressed(tappedMessage);
             }
-
             widget.onMessageTap?.call(context, tappedMessage);
           },
           onMessageVisibilityChanged: widget.onMessageVisibilityChanged,
           onPreviewDataFetched: _onPreviewDataFetched,
           roundBorder: map['nextMessageInGroup'] == true,
           showAvatar: map['nextMessageInGroup'] == false,
+          isFirstMessageInGroup: isFirstMessageInGroup,
+          isLastMessageInGroup: isLastMessageInGroup,
+          isMessageInGroup: isMessageInGroup,
           showName: map['showName'] == true,
           showStatus: map['showStatus'] == true,
           isLeftStatus: widget.isLeftStatus,

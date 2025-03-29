@@ -163,7 +163,7 @@ List<Object> calculateChatMessages(
     if (messageHasCreatedAt && nextMessageHasCreatedAt) {
       nextMessageDateThreshold =
           nextMessage!.createdAt! - message.createdAt! >= dateHeaderThreshold;
-
+ 
       nextMessageDifferentDay = DateTime.fromMillisecondsSinceEpoch(
             message.createdAt!,
             isUtc: dateIsUtc,
@@ -172,11 +172,34 @@ List<Object> calculateChatMessages(
             nextMessage.createdAt!,
             isUtc: dateIsUtc,
           ).day;
-
+ 
       nextMessageInGroup = nextMessageSameAuthor &&
           message.id != lastReadMessageId &&
           nextMessage.createdAt! - message.createdAt! <= groupMessagesThreshold;
     }
+    
+    bool isFirstMessageInGroup = false;
+    bool isLastMessageInGroup = false;
+
+    if (i == 0 ||
+        messages[i - 1].author.id != message.author.id ||
+        messages[i - 1].createdAt == null ||
+        message.createdAt == null ||
+        (message.createdAt! - messages[i - 1].createdAt!) > groupMessagesThreshold) {
+      isLastMessageInGroup = true;
+    }
+
+    if (i == messages.length - 1 ||
+        messages[i + 1].author.id != message.author.id ||
+        messages[i + 1].createdAt == null ||
+        message.createdAt == null ||
+        (messages[i + 1].createdAt! - message.createdAt!) > groupMessagesThreshold) {
+      isFirstMessageInGroup = true;
+    }
+    
+    bool isMessageInGroup = !isFirstMessageInGroup &&
+                            !isLastMessageInGroup &&
+                            nextMessageInGroup;
 
     if (isFirst && messageHasCreatedAt) {
       chatMessages.insert(
@@ -211,6 +234,9 @@ List<Object> calculateChatMessages(
       'nextMessageInGroup': nextMessageInGroup,
       'showName': notMyMessage && showUserNames && showName,
       'showStatus': message.showStatus ?? true,
+      'isFirstMessageInGroup': isFirstMessageInGroup,
+      'isLastMessageInGroup': isLastMessageInGroup,
+      'isMessageInGroup': isMessageInGroup,
     });
 
     if (!nextMessageInGroup && message.type != types.MessageType.system) {

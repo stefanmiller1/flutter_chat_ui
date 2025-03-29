@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
+import 'package:intl/intl.dart' as intl;
+import 'package:pull_down_button/pull_down_button.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 import '../../conditional/conditional.dart';
 import '../../models/bubble_rtl_alignment.dart';
 import '../../models/emoji_enlargement_behavior.dart';
 import '../../util.dart';
+import '../input/emoji_selector.dart';
 import '../state/inherited_chat_theme.dart';
 import '../state/inherited_user.dart';
 import 'file_message.dart';
 import 'image_message.dart';
 import 'message_status.dart';
+import 'reactions_bar.dart';
 import 'text_message.dart';
 import 'user_avatar.dart';
 
@@ -43,10 +47,18 @@ class Message extends StatelessWidget {
     this.onMessageStatusLongPress,
     this.onMessageStatusTap,
     this.onMessageTap,
+    this.onMessageReactionTap,
+    this.onCurrentMessageReactionsTap,
+    this.onMessageReplyTap,
+    this.onMessageCopyTap,
+    this.onMessageUnsendTap,
     this.onMessageMenuItemTap,
     this.onMessageVisibilityChanged,
     this.onPreviewDataFetched,
     required this.roundBorder,
+    required this.isFirstMessageInGroup,
+    required this.isLastMessageInGroup,
+    required this.isMessageInGroup,
     required this.showAvatar,
     required this.showName,
     required this.showStatus,
@@ -144,6 +156,21 @@ class Message extends StatelessWidget {
   /// Called when user taps on any message.
   final void Function(BuildContext context, types.Message)? onMessageTap;
 
+  /// Called when user taps on message copy.
+  final void Function(BuildContext context, types.Message)? onMessageCopyTap;
+
+  /// Called when user taps on message reaction.
+  final void Function(BuildContext context, types.Message, String reaction)? onMessageReactionTap;
+
+  /// Called when user taps on existing message reactions.
+  final void Function(BuildContext context, types.Message)? onCurrentMessageReactionsTap;
+
+  /// Called when user taps on message reply.
+  final void Function(BuildContext context, types.Message)? onMessageReplyTap;
+
+  /// Called when message owner taps unsend Message. 
+  final void Function(BuildContext context, types.Message)? onMessageUnsendTap;
+
   /// Called when the message's visibility changes.
   final void Function(types.Message, bool visible)? onMessageVisibilityChanged;
 
@@ -159,6 +186,15 @@ class Message extends StatelessWidget {
 
   /// Show user avatar for the received message. Useful for a group chat.
   final bool showAvatar;
+
+  /// This is used to determine if the message is the first in a grouped message. Also used to show user name for the message.
+  final bool isFirstMessageInGroup;
+
+  /// This is used to determine if the message is the last message in a grouped message.
+  final bool isLastMessageInGroup;
+
+  /// This is used to determine if the message is apart of grouped message.
+  final bool isMessageInGroup;
 
   /// See [TextMessage.showName].
   final bool showName;
@@ -195,7 +231,8 @@ class Message extends StatelessWidget {
   final Widget Function(types.VideoMessage, {required int messageWidth})?
       videoMessageBuilder;
 
-  final hoverNotifier = ValueNotifier<bool>(false);
+  final _hoverNotifier = ValueNotifier<bool>(false);
+  final _emojiPickerVisibleNotifier = ValueNotifier<bool>(false);
 
   Widget _avatarBuilder() => showAvatar
       ? avatarBuilder?.call(message.author) ??
@@ -208,97 +245,156 @@ class Message extends StatelessWidget {
       : const SizedBox(width: 40);
 
   Widget _popupMenuBuilder(ValueNotifier<bool> hoverNotifier, bool currentUserIsAuthor) => ValueListenableBuilder<bool>(
-      valueListenable: hoverNotifier,
-      builder: (context, isHovered, child) {
-        return AnimatedOpacity(
-          opacity: isHovered ? 1.0 : 0.0,
-          duration: const Duration(milliseconds: 400),
-          child: isHovered
-              ? Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                child: PopupMenuButton<String>(
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    color: InheritedChatTheme.of(context).theme.secondaryColor,
-                    icon: const Icon(Icons.more_vert, size: 18),
-                    offset: (currentUserIsAuthor) ? Offset(-80, 0) : Offset(80, 0),
-                    onSelected: (value) {
-                      switch (value) {
-                        case 'copy':
-                          break;
-                        case 'react':
-                          break;
-                        case 'reply':
-                          break;
-                      }
+  valueListenable: _emojiPickerVisibleNotifier,
+    builder: (context, isEmojiPickerVisible, _) => ValueListenableBuilder<bool>(
+          valueListenable: hoverNotifier,
+          builder: (context, isHovered, child) {
+            if (!isHovered && !isEmojiPickerVisible) return const SizedBox.shrink();
+      
+            final primaryColor = InheritedChatTheme.of(context).theme.primaryColor;
+            final secondarColor = InheritedChatTheme.of(context).theme.secondaryColor;
+      
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: Icon(CupertinoIcons.smiley, size: 18, color: primaryColor),
+                onPressed: () {
+                  _emojiPickerVisibleNotifier.value = true;
+                  showEmojiReactionOverlay(
+                    context: context,
+                    primaryColor: primaryColor,
+                    backgroundColor: secondarColor,
+                    onEmojiSelected: (emoji) {
+                      _emojiPickerVisibleNotifier.value = false;
+                      onMessageReactionTap?.call(context, message, emoji);
                     },
-                    itemBuilder: (context) => [
-                      PopupMenuItem(
-                        value: 'copy',
-                        child: Row(
-                          children: const [
-                            Icon(CupertinoIcons.doc_on_clipboard, size: 18),
-                            SizedBox(width: 8),
-                            Text('Copy'),
-                          ],
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: 'react',
-                        child: Row(
-                          children: const [
-                            Icon(CupertinoIcons.smiley, size: 18),
-                            SizedBox(width: 8),
-                            Text('React'),
-                          ],
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: 'reply',
-                        child: Row(
-                          children: const [
-                            Icon(CupertinoIcons.return_icon, size: 18),
-                            SizedBox(width: 8),
-                            Text('Reply'),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-              )
-              : const SizedBox.shrink(),
+                    onPop: () => _emojiPickerVisibleNotifier.value = false,
+                  );
+                },
+                tooltip: 'React',
+              ),
+              if (MediaQuery.of(context).size.width > 650) IconButton(
+                icon: Icon(CupertinoIcons.arrow_uturn_left, size: 18, color: primaryColor),
+                onPressed: () => onMessageReplyTap?.call(context, message),
+                tooltip: 'Reply',
+              ),
+              _moreBuilder(
+                context, 
+                currentUserIsAuthor,
+              ),
+            ],
+          ),
         );
       },
-    );
+    ),
+  );
   
+
+  Widget _moreBuilder(BuildContext context, bool currentUserIsAuthor) {
+    final timestamp = message.createdAt != null
+        ? intl.DateFormat('MMM d, hh:mm a')
+            .format(DateTime.fromMillisecondsSinceEpoch(message.createdAt!))
+        : null;
+ 
+      return PullDownButton(
+          onCanceled: () => _emojiPickerVisibleNotifier.value = false,
+          itemBuilder: (context) => [
+            if (timestamp != null)
+              PullDownMenuItem(
+                enabled: false,
+                title: timestamp,
+                onTap: null,
+              ),
+            if (timestamp != null) const PullDownMenuDivider.large(),
+            PullDownMenuItem(
+              title: 'Copy',
+              icon: CupertinoIcons.doc_on_clipboard,
+              onTap: () {
+                onMessageCopyTap?.call(context, message);
+                _emojiPickerVisibleNotifier.value = false;
+              }, 
+            ),
+            PullDownMenuItem(
+              title: 'Reply',
+              icon: CupertinoIcons.arrow_uturn_left,
+              onTap: () {
+                onMessageReplyTap?.call(context, message);
+                _emojiPickerVisibleNotifier.value = false;
+              }, 
+            ),
+            if (currentUserIsAuthor)
+            PullDownMenuItem(
+              title: 'Unsend',
+              icon: CupertinoIcons.delete,
+              isDestructive: true,
+              onTap: () {
+                onMessageUnsendTap?.call(context, message);
+                _emojiPickerVisibleNotifier.value = false;
+              },
+            ),
+          ],
+          position: PullDownMenuPosition.automatic,
+          buttonBuilder: (context, showMenu) => IconButton(
+            icon: Icon(
+              CupertinoIcons.ellipsis,
+              size: 18,
+              color: InheritedChatTheme.of(context).theme.primaryColor,
+            ),
+            onPressed: () {
+              _emojiPickerVisibleNotifier.value = true;
+              showMenu();
+            },
+            tooltip: 'More',
+          ),
+        );
+  }
 
   Widget _bubbleBuilder(
     BuildContext context,
     BorderRadius borderRadius,
+    types.Message currentMessage,
     bool currentUserIsAuthor,
     bool enlargeEmojis,
+    Map<String, String> reactions,
   ) {
     final defaultMessage = (enlargeEmojis && hideBackgroundOnEmojiMessages)
         ? _messageBuilder()
-        : Container(
-            decoration: BoxDecoration(
-              borderRadius: borderRadius,
-              color: !currentUserIsAuthor ||
-                      message.type == types.MessageType.image
-                  ? InheritedChatTheme.of(context).theme.secondaryColor
-                  : InheritedChatTheme.of(context).theme.primaryColor,
-            ),
-            child: ClipRRect(
-              borderRadius: borderRadius,
-              child: _messageBuilder(),
-            ),
+        : Stack(
+            clipBehavior: Clip.none,
+            alignment: (currentUserIsAuthor) ? Alignment.bottomRight : Alignment.bottomLeft,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: borderRadius,
+                  color: !currentUserIsAuthor ||
+                          currentMessage.type == types.MessageType.image
+                      ? InheritedChatTheme.of(context).theme.secondaryColor
+                      : InheritedChatTheme.of(context).theme.primaryColor,
+                ),
+                child: ClipRRect(
+                  borderRadius: borderRadius,
+                  child: _messageBuilder(),
+                ),
+              ),
+              if (reactions.isNotEmpty)
+                Positioned(
+                  bottom: -15,
+                  right: (currentUserIsAuthor) ? 20 : null,
+                  left: (currentUserIsAuthor) ? null : 10,
+                  child: ReactionsBar(
+                    reactions: reactions,
+                    onTap: () => onCurrentMessageReactionsTap?.call(context, currentMessage),
+                  ),
+                ),
+            ],
           );
     return bubbleBuilder != null
         ? bubbleBuilder!(
             _messageBuilder(),
-            message: message,
+            message: currentMessage,
             nextMessageInGroup: roundBorder,
           )
         : defaultMessage;
@@ -360,6 +456,58 @@ class Message extends StatelessWidget {
     }
   }
 
+  Widget _repliedMessageBuilder() {
+    switch (message.repliedMessage?.type) {
+      case types.MessageType.audio:
+        final audioMessage = message.repliedMessage as types.AudioMessage;
+        return audioMessageBuilder != null
+            ? audioMessageBuilder!(audioMessage, messageWidth: messageWidth)
+            : const SizedBox();
+      case types.MessageType.custom:
+        final customMessage = message.repliedMessage as types.CustomMessage;
+        return customMessageBuilder != null
+            ? customMessageBuilder!(customMessage, messageWidth: messageWidth)
+            : const SizedBox();
+      case types.MessageType.file:
+        final fileMessage = message.repliedMessage as types.FileMessage;
+        return fileMessageBuilder != null
+            ? fileMessageBuilder!(fileMessage, messageWidth: messageWidth)
+            : FileMessage(message: fileMessage);
+      case types.MessageType.image:
+        final imageMessage = message.repliedMessage as types.ImageMessage;
+        return imageMessageBuilder != null
+            ? imageMessageBuilder!(imageMessage, messageWidth: messageWidth)
+            : ImageMessage(
+                imageHeaders: imageHeaders,
+                imageProviderBuilder: imageProviderBuilder,
+                message: imageMessage,
+                messageWidth: (messageWidth * 0.35).toInt(),
+            );
+        case types.MessageType.text:
+        final textMessage = message.repliedMessage as types.TextMessage;
+        return textMessageBuilder != null
+          ? textMessageBuilder!(
+              textMessage,
+              messageWidth: messageWidth,
+              showName: showName,
+            )
+          : TextMessage(
+              emojiEnlargementBehavior: emojiEnlargementBehavior,
+              hideBackgroundOnEmojiMessages: hideBackgroundOnEmojiMessages,
+              message: textMessage,
+              showName: false,
+              usePreviewData: false,
+            );
+        case types.MessageType.video: 
+        final videoMessage = message.repliedMessage as types.VideoMessage;
+        return videoMessageBuilder != null
+            ? videoMessageBuilder!(videoMessage, messageWidth: messageWidth)
+            : const SizedBox();
+        default:
+        return const SizedBox();
+    }
+  }
+
   Widget _statusIcon(
     BuildContext context,
   ) {
@@ -377,6 +525,58 @@ class Message extends StatelessWidget {
     );
   }
 
+  Widget _buildRepliedMessagePreview(
+  BuildContext context,
+  types.Message repliedMessage,
+  bool currentUserIsAuthor
+) {
+  final user = InheritedUser.of(context).user;
+  final theme = InheritedChatTheme.of(context).theme;
+  final replyMessageIsAuthor = repliedMessage.author.id == user.id;
+
+  final replyLabel = currentUserIsAuthor
+      ? 'You replied to ${repliedMessage.author.firstName}'
+      : '${message.author.firstName} replied to ${repliedMessage.author.firstName}';
+
+  final borderRadius = BorderRadius.circular(theme.messageBorderRadius);
+
+    return Column(
+      crossAxisAlignment: (currentUserIsAuthor) ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (repliedMessage.author.firstName != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Text(
+              replyLabel,
+              style: theme.dateDividerTextStyle,
+            ),
+          ),
+
+          Opacity(
+            opacity: 0.4,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4.0),
+              child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: borderRadius,
+                      color: !replyMessageIsAuthor ||
+                              repliedMessage.type == types.MessageType.image
+                          ? InheritedChatTheme.of(context).theme.secondaryColor.withOpacity(0.4)
+                          : InheritedChatTheme.of(context).theme.primaryColor.withOpacity(0.4),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: borderRadius,
+                      child: _repliedMessageBuilder(),
+                    ),
+                  ),
+            ),
+          ),
+      ],
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
     final query = MediaQuery.of(context);
@@ -391,26 +591,42 @@ class Message extends StatelessWidget {
             );
     final messageBorderRadius =
         InheritedChatTheme.of(context).theme.messageBorderRadius;
-    final borderRadius = bubbleRtlAlignment == BubbleRtlAlignment.left
-        ? BorderRadiusDirectional.only(
-            bottomEnd: Radius.circular(
-              !currentUserIsAuthor || roundBorder ? messageBorderRadius : 0,
-            ),
-            bottomStart: Radius.circular(
-              currentUserIsAuthor || roundBorder ? messageBorderRadius : 0,
-            ),
-            topEnd: Radius.circular(messageBorderRadius),
-            topStart: Radius.circular(messageBorderRadius),
-          )
+    final isStandalone = !isMessageInGroup && isFirstMessageInGroup && isLastMessageInGroup;
+    final reactions = (message.metadata?['reactions'] as Map?)?.cast<String, String>() ?? {};
+
+    final repliedMessage = message.repliedMessage;
+    
+    final borderRadius = (isStandalone)
+        ? BorderRadius.circular(messageBorderRadius)
         : BorderRadius.only(
+            topLeft: Radius.circular(
+              currentUserIsAuthor
+                  ? messageBorderRadius
+                  : (isMessageInGroup || isLastMessageInGroup)
+                      ? 0
+                      : messageBorderRadius,
+            ),
+            topRight: Radius.circular(
+              currentUserIsAuthor
+                  ? (isMessageInGroup || isLastMessageInGroup)
+                      ? 0
+                      : messageBorderRadius
+                  : messageBorderRadius,
+            ),
             bottomLeft: Radius.circular(
-              currentUserIsAuthor || roundBorder ? messageBorderRadius : 0,
+              currentUserIsAuthor
+                  ? messageBorderRadius
+                  : (isMessageInGroup || isFirstMessageInGroup)
+                      ? 0
+                      : messageBorderRadius,
             ),
             bottomRight: Radius.circular(
-              !currentUserIsAuthor || roundBorder ? messageBorderRadius : 0,
+              currentUserIsAuthor
+                  ? (isMessageInGroup || isFirstMessageInGroup)
+                      ? 0
+                      : messageBorderRadius
+                  : messageBorderRadius,
             ),
-            topLeft: Radius.circular(messageBorderRadius),
-            topRight: Radius.circular(messageBorderRadius),
           );
 
     final bubbleMargin = InheritedChatTheme.of(context).theme.bubbleMargin ??
@@ -424,12 +640,12 @@ class Message extends StatelessWidget {
                 bottom: 4,
                 left: 20 + (isMobile ? query.padding.left : 0),
                 right: isMobile ? query.padding.right : 0,
-              ));
+              )
+            );
       
-
     return MouseRegion(
-      onEnter: (_) => hoverNotifier.value = true,
-      onExit: (_) => hoverNotifier.value = false,
+      onEnter: (_) => _hoverNotifier.value = true,
+      onExit: (_) => _hoverNotifier.value = false,
       child: Container(
         alignment: bubbleRtlAlignment == BubbleRtlAlignment.left
             ? currentUserIsAuthor
@@ -455,13 +671,15 @@ class Message extends StatelessWidget {
                 maxWidth: messageWidth.toDouble(),
               ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: (currentUserIsAuthor) ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                 children: [
+                      if (repliedMessage != null) _buildRepliedMessagePreview(context, repliedMessage, currentUserIsAuthor),
+        
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          if (currentUserIsAuthor) _popupMenuBuilder(hoverNotifier, currentUserIsAuthor),
+                          if (currentUserIsAuthor) _popupMenuBuilder(_hoverNotifier, currentUserIsAuthor),
                           Flexible(
                             child: GestureDetector(
                               onDoubleTap: () => onMessageDoubleTap?.call(context, message),
@@ -478,27 +696,32 @@ class Message extends StatelessWidget {
                                       child: _bubbleBuilder(
                                         context,
                                         borderRadius.resolve(Directionality.of(context)),
+                                        message,
                                         currentUserIsAuthor,
                                         enlargeEmojis,
+                                        reactions,
                                       ),
                                     )
                                   : _bubbleBuilder(
                                       context,
                                       borderRadius.resolve(Directionality.of(context)),
+                                      message,
                                       currentUserIsAuthor,
                                       enlargeEmojis,
+                                      reactions,
                                     ),
                             ),
                           ),
                         ],
                       ),
+                      if (reactions.isNotEmpty) const SizedBox(height: 14),
                     ],
                   ),
                 ),
                 if (currentUserIsAuthor) _statusIcon(context),
               ],
             ),
-            if (!currentUserIsAuthor) _popupMenuBuilder(hoverNotifier, currentUserIsAuthor),
+            if (!currentUserIsAuthor) _popupMenuBuilder(_hoverNotifier, currentUserIsAuthor,),
             const SizedBox(width: 8),
           ],
         ),
