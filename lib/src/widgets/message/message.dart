@@ -52,6 +52,7 @@ class Message extends StatelessWidget {
     this.onMessageReplyTap,
     this.onMessageCopyTap,
     this.onMessageUnsendTap,
+    this.onMessageReactionRemoveTap,
     this.onMessageMenuItemTap,
     this.onMessageVisibilityChanged,
     this.onPreviewDataFetched,
@@ -171,6 +172,9 @@ class Message extends StatelessWidget {
   /// Called when message owner taps unsend Message. 
   final void Function(BuildContext context, types.Message)? onMessageUnsendTap;
 
+  /// Called when message owner taps remove reaction.
+  final void Function(BuildContext context, types.Message)? onMessageReactionRemoveTap;
+
   /// Called when the message's visibility changes.
   final void Function(types.Message, bool visible)? onMessageVisibilityChanged;
 
@@ -244,7 +248,7 @@ class Message extends StatelessWidget {
           )
       : const SizedBox(width: 40);
 
-  Widget _popupMenuBuilder(ValueNotifier<bool> hoverNotifier, bool currentUserIsAuthor) => ValueListenableBuilder<bool>(
+  Widget _popupMenuBuilder(ValueNotifier<bool> hoverNotifier, bool currentUserIsAuthor, bool hasReaction) => ValueListenableBuilder<bool>(
   valueListenable: _emojiPickerVisibleNotifier,
     builder: (context, isEmojiPickerVisible, _) => ValueListenableBuilder<bool>(
           valueListenable: hoverNotifier,
@@ -284,6 +288,7 @@ class Message extends StatelessWidget {
               _moreBuilder(
                 context, 
                 currentUserIsAuthor,
+                hasReaction,
               ),
             ],
           ),
@@ -293,7 +298,7 @@ class Message extends StatelessWidget {
   );
   
 
-  Widget _moreBuilder(BuildContext context, bool currentUserIsAuthor) {
+  Widget _moreBuilder(BuildContext context, bool currentUserIsAuthor, bool hasReaction) {
     final timestamp = message.createdAt != null
         ? intl.DateFormat('MMM d, hh:mm a')
             .format(DateTime.fromMillisecondsSinceEpoch(message.createdAt!))
@@ -324,6 +329,15 @@ class Message extends StatelessWidget {
                 onMessageReplyTap?.call(context, message);
                 _emojiPickerVisibleNotifier.value = false;
               }, 
+            ),
+            if (currentUserIsAuthor && hasReaction) 
+            PullDownMenuItem(
+              title: 'Remove reaction',
+              icon: CupertinoIcons.smiley,
+              isDestructive: true,
+              onTap: () {
+                onMessageReactionRemoveTap?.call(context, message);
+              },
             ),
             if (currentUserIsAuthor)
             PullDownMenuItem(
@@ -360,13 +374,12 @@ class Message extends StatelessWidget {
     bool enlargeEmojis,
     Map<String, String> reactions,
   ) {
-    final defaultMessage = (enlargeEmojis && hideBackgroundOnEmojiMessages)
-        ? _messageBuilder()
-        : Stack(
+    final defaultMessage = Stack(
             clipBehavior: Clip.none,
             alignment: (currentUserIsAuthor) ? Alignment.bottomRight : Alignment.bottomLeft,
             children: [
-              Container(
+              if (enlargeEmojis && hideBackgroundOnEmojiMessages) _messageBuilder(),
+              if (!(enlargeEmojis && hideBackgroundOnEmojiMessages)) Container(
                 decoration: BoxDecoration(
                   borderRadius: borderRadius,
                   color: !currentUserIsAuthor ||
@@ -591,40 +604,41 @@ class Message extends StatelessWidget {
             );
     final messageBorderRadius =
         InheritedChatTheme.of(context).theme.messageBorderRadius;
-    final isStandalone = !isMessageInGroup && isFirstMessageInGroup && isLastMessageInGroup;
+    final isStandalone = !isMessageInGroup;
     final reactions = (message.metadata?['reactions'] as Map?)?.cast<String, String>() ?? {};
+    final userHasReacted = reactions.containsKey(user.id);
 
     final repliedMessage = message.repliedMessage;
     
-    final borderRadius = (isStandalone)
+    final borderRadius = (!isMessageInGroup)
         ? BorderRadius.circular(messageBorderRadius)
         : BorderRadius.only(
             topLeft: Radius.circular(
               currentUserIsAuthor
                   ? messageBorderRadius
-                  : (isMessageInGroup || isLastMessageInGroup)
-                      ? 0
-                      : messageBorderRadius,
+                  : isFirstMessageInGroup
+                      ? messageBorderRadius
+                      : 0,
             ),
             topRight: Radius.circular(
               currentUserIsAuthor
-                  ? (isMessageInGroup || isLastMessageInGroup)
-                      ? 0
-                      : messageBorderRadius
+                  ? isFirstMessageInGroup
+                      ? messageBorderRadius
+                      : 0
                   : messageBorderRadius,
             ),
             bottomLeft: Radius.circular(
               currentUserIsAuthor
                   ? messageBorderRadius
-                  : (isMessageInGroup || isFirstMessageInGroup)
-                      ? 0
-                      : messageBorderRadius,
+                  : isLastMessageInGroup
+                      ? messageBorderRadius
+                      : 0,
             ),
             bottomRight: Radius.circular(
               currentUserIsAuthor
-                  ? (isMessageInGroup || isFirstMessageInGroup)
-                      ? 0
-                      : messageBorderRadius
+                  ? isLastMessageInGroup
+                      ? messageBorderRadius
+                      : 0
                   : messageBorderRadius,
             ),
           );
@@ -666,62 +680,61 @@ class Message extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                ConstrainedBox(
-              constraints: BoxConstraints(
-                maxWidth: messageWidth.toDouble(),
-              ),
-              child: Column(
-                crossAxisAlignment: (currentUserIsAuthor) ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-                children: [
-                      if (repliedMessage != null) _buildRepliedMessagePreview(context, repliedMessage, currentUserIsAuthor),
-        
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          if (currentUserIsAuthor) _popupMenuBuilder(_hoverNotifier, currentUserIsAuthor),
-                          Flexible(
-                            child: GestureDetector(
-                              onDoubleTap: () => onMessageDoubleTap?.call(context, message),
-                              onLongPress: () => onMessageLongPress?.call(context, message),
-                              onTap: () => onMessageTap?.call(context, message),
-                              child: onMessageVisibilityChanged != null
-                                  ? VisibilityDetector(
-                                      key: Key(message.id),
-                                      onVisibilityChanged: (visibilityInfo) =>
-                                        onMessageVisibilityChanged!(
-                                        message,
-                                        visibilityInfo.visibleFraction > 0.1,
-                                      ),
-                                      child: _bubbleBuilder(
-                                        context,
-                                        borderRadius.resolve(Directionality.of(context)),
-                                        message,
-                                        currentUserIsAuthor,
-                                        enlargeEmojis,
-                                        reactions,
-                                      ),
-                                    )
-                                  : _bubbleBuilder(
-                                      context,
-                                      borderRadius.resolve(Directionality.of(context)),
-                                      message,
-                                      currentUserIsAuthor,
-                                      enlargeEmojis,
-                                      reactions,
-                                    ),
+                Column(
+                  crossAxisAlignment: (currentUserIsAuthor) ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                  children: [
+                        if (repliedMessage != null) _buildRepliedMessagePreview(context, repliedMessage, currentUserIsAuthor),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            if (currentUserIsAuthor) _popupMenuBuilder(_hoverNotifier, currentUserIsAuthor, userHasReacted),
+                            Flexible(
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(
+                                maxWidth: messageWidth.toDouble(),
+                                ),
+                                child: GestureDetector(
+                                  onDoubleTap: () => onMessageDoubleTap?.call(context, message),
+                                  onLongPress: () => onMessageLongPress?.call(context, message),
+                                  onTap: () => onMessageTap?.call(context, message),
+                                  child: onMessageVisibilityChanged != null
+                                      ? VisibilityDetector(
+                                          key: Key(message.id),
+                                          onVisibilityChanged: (visibilityInfo) =>
+                                            onMessageVisibilityChanged!(
+                                            message,
+                                            visibilityInfo.visibleFraction > 0.1,
+                                          ),
+                                          child: _bubbleBuilder(
+                                            context,
+                                            borderRadius.resolve(Directionality.of(context)),
+                                            message,
+                                            currentUserIsAuthor,
+                                            enlargeEmojis,
+                                            reactions,
+                                          ),
+                                        )
+                                      : _bubbleBuilder(
+                                          context,
+                                          borderRadius.resolve(Directionality.of(context)),
+                                          message,
+                                          currentUserIsAuthor,
+                                          enlargeEmojis,
+                                          reactions,
+                                        ),
+                                ),
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      if (reactions.isNotEmpty) const SizedBox(height: 14),
-                    ],
-                  ),
-                ),
+                          ],
+                        ),
+                        if (reactions.isNotEmpty) const SizedBox(height: 14),
+                      ],
+                    ),
                 if (currentUserIsAuthor) _statusIcon(context),
               ],
             ),
-            if (!currentUserIsAuthor) _popupMenuBuilder(_hoverNotifier, currentUserIsAuthor,),
+            if (!currentUserIsAuthor) _popupMenuBuilder(_hoverNotifier, currentUserIsAuthor, userHasReacted),
             const SizedBox(width: 8),
           ],
         ),

@@ -83,6 +83,7 @@ class Chat extends StatefulWidget {
     this.onMessageCopyTap,
     this.onMessageReactionTap, 
     this.onCurrentMessageReactionsTap,
+    this.onMessageReactionRemoveTap,
     this.onMessageReplyTap, 
     this.onMessageUnsendTap,
     this.onMessageTap,
@@ -264,6 +265,9 @@ class Chat extends StatefulWidget {
 
   /// see [Message.onCurrentMessageReactionsTap].
   final void Function(BuildContext context, types.Message message)? onCurrentMessageReactionsTap;
+
+  /// see [Message.onMessageReactionRemoveTap].
+  final void Function(BuildContext context, types.Message message)? onMessageReactionRemoveTap;
 
   /// See [Message.onMessageReplyTap].
   final void Function(BuildContext context, types.Message message)? onMessageReplyTap;
@@ -527,6 +531,7 @@ class ChatState extends State<Chat> {
           onMessageCopyTap: widget.onMessageCopyTap,
           onMessageReactionTap: widget.onMessageReactionTap,
           onCurrentMessageReactionsTap: widget.onCurrentMessageReactionsTap,
+          onMessageReactionRemoveTap: widget.onMessageReactionRemoveTap,
           onMessageReplyTap: widget.onMessageReplyTap,
           onMessageUnsendTap: widget.onMessageUnsendTap,
           onMessageTap: (context, tappedMessage) {

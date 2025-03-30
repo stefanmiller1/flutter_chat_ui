@@ -125,27 +125,48 @@ List<Object> calculateChatMessages(
     final isLast = i == 0;
     final message = messages[i];
     final messageHasCreatedAt = message.createdAt != null;
+    
+    final previousMessage = isFirst ? null : messages[i + 1];
+    final previousMessageHasCreatedAt = previousMessage?.createdAt != null;
+    final previousMessageSameAuthor = message.author.id == previousMessage?.author.id;
+
+
     final nextMessage = isLast ? null : messages[i - 1];
     final nextMessageHasCreatedAt = nextMessage?.createdAt != null;
     final nextMessageSameAuthor = message.author.id == nextMessage?.author.id;
+
     final notMyMessage = message.author.id != user.id;
+
+    final withinThresholdWithPrevious = (previousMessageHasCreatedAt && messageHasCreatedAt) ? (previousMessage!.createdAt! - message.createdAt!).abs() <= groupMessagesThreshold : false;
+    final withinThresholdWithNext = (nextMessageHasCreatedAt && messageHasCreatedAt) ? (nextMessage!.createdAt! - message.createdAt!).abs() <= groupMessagesThreshold : false;
+
+    final isMessageInGroup = (nextMessageSameAuthor || previousMessageSameAuthor) &&
+    messageHasCreatedAt && 
+    (previousMessageHasCreatedAt || nextMessageHasCreatedAt) && 
+    (!previousMessageSameAuthor || withinThresholdWithPrevious || withinThresholdWithNext);
+
+    final isFirstMessageInGroup = isMessageInGroup && 
+    (isFirst ||
+    !previousMessageSameAuthor || 
+    !withinThresholdWithPrevious || 
+    !messageHasCreatedAt || 
+    !withinThresholdWithPrevious);
+
+    final isLastMessageInGroup = isMessageInGroup && 
+    (isLast ||
+    !nextMessageSameAuthor ||
+    !withinThresholdWithNext ||
+    !messageHasCreatedAt ||
+    !withinThresholdWithNext);
 
     var nextMessageDateThreshold = false;
     var nextMessageDifferentDay = false;
     var nextMessageInGroup = false;
     var showName = false;
 
+
     if (showUserNames) {
-      final previousMessage = isFirst ? null : messages[i + 1];
-
-      final isFirstInGroup = notMyMessage &&
-          ((message.author.id != previousMessage?.author.id) ||
-              (messageHasCreatedAt &&
-                  previousMessage?.createdAt != null &&
-                  message.createdAt! - previousMessage!.createdAt! >
-                      groupMessagesThreshold));
-
-      if (isFirstInGroup) {
+      if (isFirstMessageInGroup && notMyMessage) {
         shouldShowName = false;
         if (message.type == types.MessageType.text) {
           showName = true;
@@ -161,8 +182,7 @@ List<Object> calculateChatMessages(
     }
 
     if (messageHasCreatedAt && nextMessageHasCreatedAt) {
-      nextMessageDateThreshold =
-          nextMessage!.createdAt! - message.createdAt! >= dateHeaderThreshold;
+      nextMessageDateThreshold = nextMessage!.createdAt! - message.createdAt! >= dateHeaderThreshold;
  
       nextMessageDifferentDay = DateTime.fromMillisecondsSinceEpoch(
             message.createdAt!,
@@ -177,29 +197,6 @@ List<Object> calculateChatMessages(
           message.id != lastReadMessageId &&
           nextMessage.createdAt! - message.createdAt! <= groupMessagesThreshold;
     }
-    
-    bool isFirstMessageInGroup = false;
-    bool isLastMessageInGroup = false;
-
-    if (i == 0 ||
-        messages[i - 1].author.id != message.author.id ||
-        messages[i - 1].createdAt == null ||
-        message.createdAt == null ||
-        (message.createdAt! - messages[i - 1].createdAt!) > groupMessagesThreshold) {
-      isLastMessageInGroup = true;
-    }
-
-    if (i == messages.length - 1 ||
-        messages[i + 1].author.id != message.author.id ||
-        messages[i + 1].createdAt == null ||
-        message.createdAt == null ||
-        (messages[i + 1].createdAt! - message.createdAt!) > groupMessagesThreshold) {
-      isFirstMessageInGroup = true;
-    }
-    
-    bool isMessageInGroup = !isFirstMessageInGroup &&
-                            !isLastMessageInGroup &&
-                            nextMessageInGroup;
 
     if (isFirst && messageHasCreatedAt) {
       chatMessages.insert(
@@ -249,7 +246,7 @@ List<Object> calculateChatMessages(
       );
     }
 
-    if (nextMessageDifferentDay || nextMessageDateThreshold) {
+    if (!nextMessageInGroup && (nextMessageDifferentDay || nextMessageDateThreshold)) {
       chatMessages.insert(
         0,
         DateHeader(

@@ -5,6 +5,157 @@
       "id": "82091008-a484-4a89-ae75-a22bf8d6f3ac",
       "lastName": "White"
     },
+    "createdAt": 1655648500000,
+    "id": "group-1",
+    "status": "sent",
+    "text": "Hey, just checking in real quick.",
+    "type": "text"
+  },
+  {
+    "author": {
+      "firstName": "Matthew",
+      "id": "82091008-a484-4a89-ae75-a22bf8d6f3ac",
+      "lastName": "White"
+    },
+    "createdAt": 1655648501000,
+    "id": "group-2",
+    "status": "sent",
+    "text": "Need help reviewing the latest PR?",
+    "type": "text"
+  },
+  {
+    "author": {
+      "firstName": "Matthew",
+      "id": "82091008-a484-4a89-ae75-a22bf8d6f3ac",
+      "lastName": "White"
+    },
+    "createdAt": 1655648503000,
+    "id": "group-4",
+    "status": "sent",
+    "text": "Thanks again for the help last week!",
+    "type": "text"
+  },
+  {
+    "author": {
+      "firstName": "Matthew",
+      "id": "82091008-a484-4a89-ae75-a22bf8d6f3ac",
+      "lastName": "White"
+    },
+    "createdAt": 1655552000000,
+    "id": "spaced-1",
+    "status": "sent",
+    "text": "Morning! Just checking in.",
+    "type": "text"
+  },
+  {
+    "author": {
+      "firstName": "Matthew",
+      "id": "82091008-a484-4a89-ae75-a22bf8d6f3ac",
+      "lastName": "White"
+    },
+    "createdAt": 1655570000000,
+    "id": "spaced-2",
+    "status": "sent",
+    "text": "Got time for a quick call later?",
+    "type": "text"
+  },
+  {
+    "author": {
+      "firstName": "Matthew",
+      "id": "82091008-a484-4a89-ae75-a22bf8d6f3ac",
+      "lastName": "White"
+    },
+    "createdAt": 1655600000000,
+    "id": "spaced-3",
+    "status": "sent",
+    "text": "No worries if not — I’ll follow up tomorrow.",
+    "type": "text"
+  },
+  {
+    "author": {
+      "firstName": "Matthew",
+      "id": "82091008-a484-4a89-ae75-a22bf8d6f3ac",
+      "lastName": "White"
+    },
+    "createdAt": 1655700000000,
+    "id": "spaced-4",
+    "status": "sent",
+    "text": "Good morning again! Any updates?",
+    "type": "text"
+  },
+  {
+    "author": {
+      "firstName": "Matthew",
+      "id": "82091008-a484-4a89-ae75-a22bf8d6f3ac",
+      "lastName": "White"
+    },
+    "createdAt": 1655648504000,
+    "id": "group-5",
+    "status": "sent",
+    "text": "Really appreciate it.",
+    "type": "text"
+  },
+  {
+    "author": {
+      "firstName": "Matthew",
+      "id": "82091008-a484-4a89-ae75-a22bf8d6f3ac",
+      "lastName": "White"
+    },
+    "createdAt": 1655648600000,
+    "id": "group-delayed-1",
+    "status": "sent",
+    "text": "Quick update on the timeline.",
+    "type": "text"
+  },
+  {
+    "author": {
+      "firstName": "Matthew",
+      "id": "82091008-a484-4a89-ae75-a22bf8d6f3ac",
+      "lastName": "White"
+    },
+    "createdAt": 1655648700000,
+    "id": "group-delayed-2",
+    "status": "sent",
+    "text": "Will extend to next Friday.",
+    "type": "text"
+  },
+  {
+    "author": {
+      "firstName": "Matthew",
+      "id": "82091008-a484-4a89-ae75-a22bf8d6f3ac",
+      "lastName": "White"
+    },
+    "createdAt": 1655648502000,
+    "id": "group-3",
+    "status": "sent",
+    "text": "Let me know before 5 PM.",
+    "type": "text"
+  },
+  {
+    "author": {
+      "firstName": "Matthew",
+      "id": "82091008-a484-4a89-ae75-a22bf8d6f3ac",
+      "lastName": "White"
+    },
+    "createdAt": 1655648705000,
+    "id": "group-emoji",
+    "status": "sent",
+    "text": "🔥",
+    "metadata": {
+      "reactions": {
+        "82091008-a484-4a89-ae75-a22bf8d6f3ac": "👍",
+        "user3": "😂",
+        "user4": "🔥"
+      }
+    },
+    "type": "text"
+  },
+  {
+    "author": {
+      "firstName": "Matthew",
+      "id": "82091008-a484-4a89-ae75-a22bf8d6f3ac",
+      "lastName": "White"
+    },
     "createdAt": 1655648410000,
     "id": "self-reply-1",
     "status": "seen",
