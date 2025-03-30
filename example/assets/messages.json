@@ -257,6 +257,11 @@
     "height": 1280,
     "id": "02797655-4d73-402e-a319-50fde79e2bc4",
     "name": "madrid",
+    "metadata": {
+      "reported": {
+        "82091008-a484-4a89-ae75-a22bf8d6f3ac": true
+      }
+    },
     "size": 585000,
     "status": "seen",
     "type": "image",

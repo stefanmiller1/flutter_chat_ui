@@ -86,6 +86,7 @@ class Chat extends StatefulWidget {
     this.onMessageReactionRemoveTap,
     this.onMessageReplyTap, 
     this.onMessageUnsendTap,
+    this.onMessageReportTap,
     this.onMessageTap,
     this.onMessageVisibilityChanged,
     this.onPreviewDataFetched,
@@ -108,7 +109,7 @@ class Chat extends StatefulWidget {
     this.videoMessageBuilder,
     this.slidableMessageBuilder,
     this.isLeftStatus = false,
-    this.messageWidthRatio = 0.72, 
+    this.messageWidthRatio = 0.65, 
   });
 
   /// See [Message.audioMessageBuilder].
@@ -271,6 +272,9 @@ class Chat extends StatefulWidget {
 
   /// See [Message.onMessageReplyTap].
   final void Function(BuildContext context, types.Message message)? onMessageReplyTap;
+
+  /// See [Message.onMessageReportTap].
+  final void Function(BuildContext context, types.Message message)? onMessageReportTap;
 
   /// See [Message.onMessageUnsendTap].
   final void Function(BuildContext context, types.Message message)? onMessageUnsendTap;
@@ -534,6 +538,7 @@ class ChatState extends State<Chat> {
           onMessageReactionRemoveTap: widget.onMessageReactionRemoveTap,
           onMessageReplyTap: widget.onMessageReplyTap,
           onMessageUnsendTap: widget.onMessageUnsendTap,
+          onMessageReportTap: widget.onMessageReportTap,
           onMessageTap: (context, tappedMessage) {
             if (tappedMessage is types.ImageMessage &&
                 widget.disableImageGallery != true) {

@@ -652,8 +652,9 @@ class Message extends StatelessWidget {
             );
     final messageBorderRadius =
         InheritedChatTheme.of(context).theme.messageBorderRadius;
-    final isStandalone = !isMessageInGroup;
+
     final reactions = (message.metadata?['reactions'] as Map?)?.cast<String, String>() ?? {};
+    final currentUserHasReportedMessage = message.metadata?['reported'] != null && (message.metadata?['reported'] as Map<String, dynamic>).containsKey(user.id);
     final userHasReacted = reactions.containsKey(user.id);
 
     final repliedMessage = message.repliedMessage;
@@ -726,7 +727,7 @@ class Message extends StatelessWidget {
           children: [
             if (!currentUserIsAuthor && showUserAvatars) _avatarBuilder(),
             Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
+              crossAxisAlignment: (currentUserIsAuthor) ? CrossAxisAlignment.end : CrossAxisAlignment.start,
               children: [
                 Column(
                   crossAxisAlignment: (currentUserIsAuthor) ? CrossAxisAlignment.end : CrossAxisAlignment.start,
@@ -780,6 +781,7 @@ class Message extends StatelessWidget {
                       ],
                     ),
                 if (currentUserIsAuthor) _statusIcon(context),
+                if (!currentUserIsAuthor && currentUserHasReportedMessage) Text('Reported by you', style: TextStyle(color: Theme.of(context).colorScheme.error)),
               ],
             ),
             if (!currentUserIsAuthor) _popupMenuBuilder(_hoverNotifier, currentUserIsAuthor, userHasReacted),
