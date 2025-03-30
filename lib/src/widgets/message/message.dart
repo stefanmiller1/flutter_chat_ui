@@ -52,6 +52,7 @@ class Message extends StatelessWidget {
     this.onMessageReplyTap,
     this.onMessageCopyTap,
     this.onMessageUnsendTap,
+    this.onMessageReportTap,
     this.onMessageReactionRemoveTap,
     this.onMessageMenuItemTap,
     this.onMessageVisibilityChanged,
@@ -172,6 +173,9 @@ class Message extends StatelessWidget {
   /// Called when message owner taps unsend Message. 
   final void Function(BuildContext context, types.Message)? onMessageUnsendTap;
 
+  /// Called when reporting message not by owner.
+  final void Function(BuildContext context, types.Message)? onMessageReportTap;
+  
   /// Called when message owner taps remove reaction.
   final void Function(BuildContext context, types.Message)? onMessageReactionRemoveTap;
 
@@ -329,6 +333,15 @@ class Message extends StatelessWidget {
                 onMessageReplyTap?.call(context, message);
                 _emojiPickerVisibleNotifier.value = false;
               }, 
+            ),
+            if (!currentUserIsAuthor) 
+            PullDownMenuItem(
+              title: 'Report',
+              icon: CupertinoIcons.flag,
+              isDestructive: true,
+              onTap: () {
+                onMessageReportTap?.call(context, message);
+              }
             ),
             if (currentUserIsAuthor && hasReaction) 
             PullDownMenuItem(
@@ -566,23 +579,58 @@ class Message extends StatelessWidget {
             ),
           ),
 
-          Opacity(
-            opacity: 0.4,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4.0),
-              child: Container(
+          IntrinsicHeight(
+            child: Row(
+              children: [
+                if (!currentUserIsAuthor) 
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Container(
+                    width: 2,
+                    margin: const EdgeInsets.symmetric(horizontal: 8),
                     decoration: BoxDecoration(
-                      borderRadius: borderRadius,
-                      color: !replyMessageIsAuthor ||
-                              repliedMessage.type == types.MessageType.image
-                          ? InheritedChatTheme.of(context).theme.secondaryColor.withOpacity(0.4)
-                          : InheritedChatTheme.of(context).theme.primaryColor.withOpacity(0.4),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: borderRadius,
-                      child: _repliedMessageBuilder(),
+                      color: InheritedChatTheme.of(context).theme.primaryColor.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(2),
                     ),
                   ),
+                ),
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: messageWidth.toDouble(),
+                  ),
+                  child: Opacity(
+                    opacity: 0.4,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                      child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: borderRadius,
+                              color: !replyMessageIsAuthor ||
+                                      repliedMessage.type == types.MessageType.image
+                                  ? InheritedChatTheme.of(context).theme.secondaryColor.withOpacity(0.4)
+                                  : InheritedChatTheme.of(context).theme.primaryColor.withOpacity(0.4),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: borderRadius,
+                              child: _repliedMessageBuilder(),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                if (currentUserIsAuthor) 
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Container(
+                    width: 2,
+                    margin: const EdgeInsets.symmetric(horizontal: 8),
+                    decoration: BoxDecoration(
+                      color: InheritedChatTheme.of(context).theme.primaryColor.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
       ],
