@@ -125,15 +125,18 @@ List<Object> calculateChatMessages(
     final isLast = i == 0;
     final message = messages[i];
     final messageHasCreatedAt = message.createdAt != null;
+    final messageIsSystemMessage = message.type == types.MessageType.system;
     
     final previousMessage = isFirst ? null : messages[i + 1];
     final previousMessageHasCreatedAt = previousMessage?.createdAt != null;
     final previousMessageSameAuthor = message.author.id == previousMessage?.author.id;
+    final previousMessageIsSystemMessage = previousMessage?.type == types.MessageType.system;
 
 
     final nextMessage = isLast ? null : messages[i - 1];
     final nextMessageHasCreatedAt = nextMessage?.createdAt != null;
     final nextMessageSameAuthor = message.author.id == nextMessage?.author.id;
+    final nextMessageIsSystemMessage = nextMessage?.type == types.MessageType.system;
 
     final notMyMessage = message.author.id != user.id;
 
@@ -143,7 +146,8 @@ List<Object> calculateChatMessages(
     final isMessageInGroup = (nextMessageSameAuthor || previousMessageSameAuthor) &&
     messageHasCreatedAt && 
     (previousMessageHasCreatedAt || nextMessageHasCreatedAt) && 
-    (!previousMessageSameAuthor || withinThresholdWithPrevious || withinThresholdWithNext);
+    (!previousMessageSameAuthor || withinThresholdWithPrevious || withinThresholdWithNext) && 
+    (!messageIsSystemMessage || !previousMessageIsSystemMessage || !nextMessageIsSystemMessage);
 
     final isFirstMessageInGroup = isMessageInGroup && 
     (isFirst ||

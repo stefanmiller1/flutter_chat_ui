@@ -25,6 +25,18 @@
   },
   {
     "author": {
+      "firstName": "Janice",
+      "id": "e52552f4-835d-4dbe-ba77-b076e659774d",
+      "imageUrl": "https://i.pravatar.cc/300?u=e52552f4-835d-4dbe-ba77-b076e659774d",
+      "lastName": "King"
+    },
+    "id": "system-1",
+    "createdAt": 1655648800000,
+    "type": "system",
+    "text": "Matthew joined the chat."
+  },
+  {
+    "author": {
       "firstName": "Matthew",
       "id": "82091008-a484-4a89-ae75-a22bf8d6f3ac",
       "lastName": "White"
@@ -94,6 +106,18 @@
     "status": "sent",
     "text": "Really appreciate it.",
     "type": "text"
+  },
+  {
+    "author": {
+      "firstName": "Janice",
+      "id": "e52552f4-835d-4dbe-ba77-b076e659774d",
+      "imageUrl": "https://i.pravatar.cc/300?u=e52552f4-835d-4dbe-ba77-b076e659774d",
+      "lastName": "King"
+    },
+    "id": "system-1",
+    "createdAt": 1655648800000,
+    "type": "system",
+    "text": "Matthew joined the chat."
   },
   {
     "author": {
@@ -174,6 +198,7 @@
       "type": "text"
     }
   },
+
   {
     "author": {
       "firstName": "Janice",
@@ -430,5 +455,17 @@
       "e52552f4-835d-4dbe-ba77-b076e659774d": "😍"
       }
     }
+  },
+  {
+    "author": {
+      "firstName": "Janice",
+      "id": "e52552f4-835d-4dbe-ba77-b076e659774d",
+      "imageUrl": "https://i.pravatar.cc/300?u=e52552f4-835d-4dbe-ba77-b076e659774d",
+      "lastName": "King"
+    },
+    "id": "system-1",
+    "createdAt": 1655648800000,
+    "type": "system",
+    "text": "Matthew joined the chat."
   }
 ]

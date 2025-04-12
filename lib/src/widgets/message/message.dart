@@ -561,7 +561,7 @@ class Message extends StatelessWidget {
   final replyMessageIsAuthor = repliedMessage.author.id == user.id;
 
   final replyLabel = currentUserIsAuthor
-      ? 'You replied to ${repliedMessage.author.firstName}'
+      ? 'You replied to ${(replyMessageIsAuthor) ? 'Yourself' : repliedMessage.author.firstName}'
       : '${message.author.firstName} replied to ${repliedMessage.author.firstName}';
 
   final borderRadius = BorderRadius.circular(theme.messageBorderRadius);
