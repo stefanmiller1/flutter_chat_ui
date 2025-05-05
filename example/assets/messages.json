@@ -13,18 +13,6 @@
   },
   {
     "author": {
-      "firstName": "Matthew",
-      "id": "82091008-a484-4a89-ae75-a22bf8d6f3ac",
-      "lastName": "White"
-    },
-    "createdAt": 1655648501000,
-    "id": "group-2",
-    "status": "sent",
-    "text": "Need help reviewing the latest PR?",
-    "type": "text"
-  },
-  {
-    "author": {
       "firstName": "Janice",
       "id": "e52552f4-835d-4dbe-ba77-b076e659774d",
       "imageUrl": "https://i.pravatar.cc/300?u=e52552f4-835d-4dbe-ba77-b076e659774d",
@@ -34,6 +22,18 @@
     "createdAt": 1655648800000,
     "type": "system",
     "text": "Matthew joined the chat."
+  },
+  {
+    "author": {
+      "firstName": "Matthew",
+      "id": "82091008-a484-4a89-ae75-a22bf8d6f3ac",
+      "lastName": "White"
+    },
+    "createdAt": 1655648501000,
+    "id": "group-2",
+    "status": "sent",
+    "text": "Need help reviewing the latest PR?",
+    "type": "text"
   },
   {
     "author": {
